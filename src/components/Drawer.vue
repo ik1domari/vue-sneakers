@@ -1,10 +1,17 @@
 <script setup>
-import DrawerHead from '@/components/DrawerHead.vue'
-import CartItemList from '@/components/CartItemList.vue'
+import { inject } from 'vue';
+import DrawerHead from '@/components/DrawerHead.vue';
+import CartItemList from '@/components/CartItemList.vue';
+
+const drawerOpen = inject('drawerOpen');
+const closeDrawer = inject('cartActions').closeDrawer;
 </script>
 
 <template>
-  <div class="fixed top-0 left-0 w-full h-full bg-black/50 z-10"></div>
+  <div
+    class="fixed top-0 left-0 w-full h-full bg-black/50 z-10"
+    @click="drawerOpen ? closeDrawer() : null"
+  ></div>
   <div
     class="bg-white flex flex-col justify-between w-96 h-full fixed top-0 right-0 z-[11] p-8"
   >

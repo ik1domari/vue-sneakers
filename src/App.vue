@@ -7,6 +7,17 @@ import CardList from '@/components/CardList.vue';
 import Drawer from '@/components/Drawer.vue';
 
 const items = ref([]);
+const cart = ref([]);
+
+const drawerOpen = ref(false);
+
+const closeDrawer = () => {
+  drawerOpen.value = false;
+};
+
+const openDrawer = () => {
+  drawerOpen.value = true;
+};
 
 const filters = reactive({
   sortBy: 'title',
@@ -32,7 +43,7 @@ const fetchFavorites = async () => {
       if (!favorite) {
         return item;
       }
-      console.log(items.value);
+
       return {
         ...item,
         isFavorite: true,
@@ -44,20 +55,35 @@ const fetchFavorites = async () => {
   }
 };
 
-const addToFavorites = async item => {
-  item.isFavorite = !item.isFavorite;
-  const favorite = await axios.get(
-    `https://57c7e5baa6d902c1.mokky.dev/favorites/${item.id}`,
-  );
+provide('drawerOpen', drawerOpen);
+provide('cartActions', {
+  openDrawer,
+  closeDrawer,
+});
 
-  if (!favorite) {
-    await axios.post(`https://57c7e5baa6d902c1.mokky.dev/favorites`, {
-      itemId: item.id,
-    });
-  } else {
-    await axios.delete(
-      `https://57c7e5baa6d902c1.mokky.dev/favorites/${item.id}`,
-    );
+const addToFavorites = async item => {
+  try {
+    if (!item.isFavorite) {
+      const obj = {
+        itemId: item.id,
+      };
+      item.isFavorite = true;
+
+      const { data } = await axios.post(
+        `https://57c7e5baa6d902c1.mokky.dev/favorites`,
+        obj,
+      );
+
+      item.favoriteId = data.id;
+    } else {
+      item.isFavorite = false;
+      await axios.delete(
+        `https://57c7e5baa6d902c1.mokky.dev/favorites/${item.favoriteId}`,
+      );
+      item.favoriteId = null;
+    }
+  } catch (e) {
+    console.log(e);
   }
 };
 
@@ -79,6 +105,7 @@ const fetchItems = async () => {
     items.value = data.map(item => ({
       ...item,
       isFavorite: false,
+      favoriteId: null,
       isAdded: false,
     }));
   } catch (e) {
@@ -97,8 +124,8 @@ provide('addToFavorites', addToFavorites);
 
 <template>
   <div class="w-4/5 mx-auto mt-10 bg-white rounded-xl shadow-xl">
-    <Header />
-    <!--    <Drawer />-->
+    <Header @open-drawer="openDrawer" />
+    <Drawer v-if="drawerOpen" />
     <div class="p-8">
       <div class="flex justify-between items-center">
         <h2 class="font-bold text-3xl">Все кроссовки</h2>
@@ -126,7 +153,7 @@ provide('addToFavorites', addToFavorites);
       </div>
 
       <div class="mt-10">
-        <CardList :items="items" @addToFavorites="addToFavorites" />
+        <CardList :items="items" @add-to-favorites="addToFavorites" />
       </div>
     </div>
   </div>
