@@ -4,7 +4,7 @@ import DrawerHead from '@/components/DrawerHead.vue';
 import CartItemList from '@/components/CartItemList.vue';
 
 const drawerOpen = inject('drawerOpen');
-const closeDrawer = inject('cartActions').closeDrawer;
+const closeDrawer = inject('cart').closeDrawer;
 </script>
 
 <template>

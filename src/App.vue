@@ -55,11 +55,24 @@ const fetchFavorites = async () => {
   }
 };
 
-provide('drawerOpen', drawerOpen);
-provide('cartActions', {
-  openDrawer,
-  closeDrawer,
-});
+const addToCart = item => {
+  item.isAdded = true;
+  cart.value.push(item);
+};
+
+const removeFromCart = item => {
+  item.isAdded = false;
+  cart.value.splice(cart.value.indexOf(item), 1);
+};
+
+const onClickPlus = item => {
+  if (!item.isAdded) {
+    addToCart(item);
+  } else {
+    removeFromCart(item);
+  }
+  console.log(cart.value);
+};
 
 const addToFavorites = async item => {
   try {
@@ -119,6 +132,16 @@ onMounted(async () => {
 });
 watch(filters, fetchItems);
 
+provide('drawerOpen', drawerOpen);
+provide('cart', {
+  cart,
+  openDrawer,
+  closeDrawer,
+  addToCart,
+  removeFromCart,
+  onClickPlus,
+});
+
 provide('addToFavorites', addToFavorites);
 </script>
 
@@ -153,7 +176,11 @@ provide('addToFavorites', addToFavorites);
       </div>
 
       <div class="mt-10">
-        <CardList :items="items" @add-to-favorites="addToFavorites" />
+        <CardList
+          :items="items"
+          @add-to-favorites="addToFavorites"
+          @on-click-plus="onClickPlus"
+        />
       </div>
     </div>
   </div>

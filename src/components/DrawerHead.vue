@@ -1,6 +1,6 @@
 <script setup>
 import { inject } from 'vue';
-const { closeDrawer } = inject('cartActions');
+const { closeDrawer } = inject('cart');
 </script>
 
 <template>
