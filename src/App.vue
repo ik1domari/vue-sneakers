@@ -1,13 +1,21 @@
 <script setup>
-import { onMounted, provide, reactive, ref, watch } from 'vue';
+import { computed, onMounted, provide, reactive, ref, watch } from 'vue';
 import axios from 'axios';
-
 import Header from '@/components/Header.vue';
 import CardList from '@/components/CardList.vue';
 import Drawer from '@/components/Drawer.vue';
 
 const items = ref([]);
 const cart = ref([]);
+const isOrderCreating = ref(false);
+
+const totalPrice = computed(() =>
+  cart.value.reduce((sum, item) => sum + item.price, 0),
+);
+
+const cartButtonDisabled = computed(() =>
+  isOrderCreating.value ? true : !totalPrice.value,
+);
 
 const drawerOpen = ref(false);
 
@@ -55,6 +63,27 @@ const fetchFavorites = async () => {
   }
 };
 
+const createOrder = async () => {
+  try {
+    isOrderCreating.value = true;
+    const { data } = await axios.post(
+      `https://57c7e5baa6d902c1.mokky.dev/orders`,
+      {
+        items: cart.value,
+        totalPrice: totalPrice.value,
+      },
+    );
+
+    cart.value = [];
+
+    return data;
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isOrderCreating.value = false;
+  }
+};
+
 const addToCart = item => {
   item.isAdded = true;
   cart.value.push(item);
@@ -71,7 +100,6 @@ const onClickPlus = item => {
   } else {
     removeFromCart(item);
   }
-  console.log(cart.value);
 };
 
 const addToFavorites = async item => {
@@ -127,10 +155,35 @@ const fetchItems = async () => {
 };
 
 onMounted(async () => {
+  const cartItems = localStorage.getItem('cart');
+  cart.value = cartItems ? JSON.parse(cartItems) : [];
+
   await fetchItems();
   await fetchFavorites();
+
+  items.value = items.value.map(item => ({
+    ...item,
+    isAdded: cart.value.some(cartItem => cartItem.id === item.id),
+  }));
 });
+
 watch(filters, fetchItems);
+watch(cart, () => {
+  items.value = items.value.map(item => ({
+    ...item,
+    isAdded: false,
+  }));
+});
+
+watch(
+  cart,
+  () => {
+    localStorage.setItem('cart', JSON.stringify(cart.value));
+  },
+  {
+    deep: true,
+  },
+);
 
 provide('drawerOpen', drawerOpen);
 provide('cart', {
@@ -147,8 +200,13 @@ provide('addToFavorites', addToFavorites);
 
 <template>
   <div class="w-4/5 mx-auto mt-10 bg-white rounded-xl shadow-xl">
-    <Header @open-drawer="openDrawer" />
-    <Drawer v-if="drawerOpen" />
+    <Header :total-price="totalPrice" @open-drawer="openDrawer" />
+    <Drawer
+      :cart-button-disabled="cartButtonDisabled"
+      @create-order="createOrder"
+      :total-price="totalPrice"
+      v-if="drawerOpen"
+    />
     <div class="p-8">
       <div class="flex justify-between items-center">
         <h2 class="font-bold text-3xl">Все кроссовки</h2>
