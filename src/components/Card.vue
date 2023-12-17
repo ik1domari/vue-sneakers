@@ -16,6 +16,7 @@ defineProps({
     class="relative bg-white border border-slate-100 rounded-3xl p-8 cursor-pointer transition hover:-translate-y-2 hover:shadow-md"
   >
     <img
+      v-if="onClickFavorite"
       @click="onClickFavorite"
       :src="!isFavorite ? '/like-1.svg' : '/like-2.svg'"
       alt="like-2"
@@ -34,6 +35,7 @@ defineProps({
         <b>{{ price }} ₽</b>
       </div>
       <img
+        v-if="onClickAdd"
         @click="onClickAdd"
         :src="!isAdded ? '/plus.svg' : '/checked.svg'"
         alt="plus"
