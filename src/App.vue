@@ -6,14 +6,9 @@ import Drawer from '@/components/Drawer.vue';
 
 const items = ref([]);
 const cart = ref([]);
-const isOrderCreating = ref(false);
 
 const totalPrice = computed(() =>
   cart.value.reduce((sum, item) => sum + item.price, 0),
-);
-
-const cartButtonDisabled = computed(() =>
-  isOrderCreating.value ? true : !totalPrice.value,
 );
 
 const drawerOpen = ref(false);
@@ -51,27 +46,6 @@ const fetchFavorites = async () => {
     });
   } catch (e) {
     console.log(e);
-  }
-};
-
-const createOrder = async () => {
-  try {
-    isOrderCreating.value = true;
-    const { data } = await axios.post(
-      `https://57c7e5baa6d902c1.mokky.dev/orders`,
-      {
-        items: cart.value,
-        totalPrice: totalPrice.value,
-      },
-    );
-
-    cart.value = [];
-
-    return data;
-  } catch (err) {
-    console.error(err);
-  } finally {
-    isOrderCreating.value = false;
   }
 };
 

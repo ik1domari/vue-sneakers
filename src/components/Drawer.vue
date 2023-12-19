@@ -1,20 +1,46 @@
 <script setup>
-import { computed, inject } from 'vue';
+import { computed, inject, provide, ref } from 'vue';
 import DrawerHead from '@/components/DrawerHead.vue';
 import CartItemList from '@/components/CartItemList.vue';
 import InfoBlock from '@/components/InfoBlock.vue';
+import axios from 'axios';
 
-const emit = defineEmits(['createOrder']);
-
-const { totalPrice, cartButtonDisabled } = defineProps({
+const { totalPrice } = defineProps({
   totalPrice: Number,
-  cartButtonDisabled: Boolean,
 });
+
+const { cart, closeDrawer } = inject('cart');
+
+const isOrderCreating = ref(false);
+const orderId = ref(null);
+
+const createOrder = async () => {
+  try {
+    isOrderCreating.value = true;
+    const { data } = await axios.post(
+      `https://57c7e5baa6d902c1.mokky.dev/orders`,
+      {
+        items: cart.value,
+        totalPrice,
+      },
+    );
+
+    cart.value = [];
+    orderId.value = data.id;
+    return data;
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isOrderCreating.value = false;
+  }
+};
 
 const tax = computed(() => Math.round(totalPrice * 0.05));
 
 const drawerOpen = inject('drawerOpen');
-const closeDrawer = inject('cart').closeDrawer;
+const buttonDisabled = computed(() =>
+  isOrderCreating.value ? true : !totalPrice,
+);
 </script>
 
 <template>
@@ -27,10 +53,16 @@ const closeDrawer = inject('cart').closeDrawer;
   >
     <DrawerHead />
     <InfoBlock
-      v-if="!totalPrice"
+      v-if="!totalPrice && !orderId"
       title="Корзина пуста"
       description="Добавьте хотя бы одну пару кроссовок, чтобы сделать заказ."
       imageUrl="/package-icon.png"
+    />
+    <InfoBlock
+      v-else-if="orderId"
+      title="Заказ оформлен!"
+      :description="`Ваш заказ #${orderId} скоро приедет к вам.`"
+      imageUrl="/order-success-icon.png"
     />
     <div v-else class="flex flex-col justify-between h-full">
       <CartItemList />
@@ -46,8 +78,8 @@ const closeDrawer = inject('cart').closeDrawer;
           <b>{{ tax }} ₽</b>
         </div>
         <button
-          @click="() => emit('createOrder')"
-          :disabled="cartButtonDisabled"
+          @click="createOrder"
+          :disabled="buttonDisabled"
           class="w-full bg-lime-500 text-white rounded-xl py-4 mt-4 transition hover:bg-lime-600 active:bg-lime-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
         >
           Оформить заказ

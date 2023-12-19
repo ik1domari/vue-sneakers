@@ -1,6 +1,7 @@
 <script setup>
 import CardList from '@/components/CardList.vue';
 import { inject } from 'vue';
+import debounce from 'lodash.debounce';
 
 const items = inject('items');
 
@@ -10,10 +11,9 @@ const onChangeSelect = event => {
   filters.sortBy = event.target.value;
 };
 
-const onChangeSearchInput = event => {
+const onChangeSearchInput = debounce(event => {
   filters.searchQuery = event.target.value;
-};
-
+}, 300);
 const addToFavorites = inject('addToFavorites');
 const { onClickPlus } = inject('cart');
 </script>
