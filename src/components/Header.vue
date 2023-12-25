@@ -39,8 +39,10 @@ defineProps({
       <li
         class="flex gap-3 items-center transition hover:text-black cursor-pointer"
       >
-        <img src="/profile.svg" alt="profile" />
-        <span>Профиль</span>
+        <router-link to="/profile" class="flex gap-3 items-center">
+          <img src="/profile.svg" alt="profile" />
+          <span>Профиль</span>
+        </router-link>
       </li>
     </ul>
   </header>
