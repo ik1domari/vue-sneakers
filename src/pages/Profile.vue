@@ -39,7 +39,7 @@ export default {
   <div class="mt-4">
     <a
       class="flex items-center gap-2 transition hover:text-green-500"
-      href="https://github.com/mikrocosmos"
+      href="https://github.com/ik1domary"
       target="_blank"
       rel="noreferrer"
     >
